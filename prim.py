@@ -138,6 +138,13 @@ class SpanningTree:
         else:
             self.connections = connections
 
+    def __repr__(self):
+        rep_str = ''
+        for c in self.connections:
+            rep_str = rep_str + str(c) + '\n'
+
+        return rep_str
+
 
 class Prim:
     def __init__(self, graph=None):
@@ -152,38 +159,42 @@ class Prim:
         if not self.graph.vertexes or len(self.graph.vertexes) <= 0:
             raise ValueError("No graph found. Use Prim.graph.add_vertex() and Prim.graph.add_edge() to get started")
 
-        current_vertex = self.graph.vertexes[0]
-        current_vertex.has_visited = True
-        has_finished = False
+        # Actual Algorithm
+        current_vertex = self.graph.vertexes[0]     # Gets 1st vertex
+        current_vertex.has_visited = True           # Sets as visited
+        has_finished = False                        # Variable to indicate when the loop should stop
 
         while not has_finished:
-            minimum_connection = None
-            for c in self.search_connections:
-                if c.has_chosen:
-                    continue
+            minimum_connection = None               # Dummy variable to get the minimum connection available
+            for c in self.search_connections:       # For each connection
+                if c.has_chosen:                    # If it is labeled as already chosen
+                    continue                        # Skip
                 if not minimum_connection or c.weight < minimum_connection.weight:
-                    minimum_connection = c
+                    minimum_connection = c          # If connection weight < dummy variable, connection is now dummy
 
-            if not minimum_connection:
-                has_finished = True
-            else:
+            if minimum_connection:
+                # A valid connection has been found
                 minimum_connection.has_chosen = True
                 minimum_connection.vertex_one.has_visited = True
                 minimum_connection.vertex_two.has_visited = True
                 self.spanning_tree.connections.append(minimum_connection)
+            else:
+                # No more connections are available
+                has_finished = True
 
         return self.spanning_tree
 
     @property
     def search_connections(self):
-        avaiable_connections = []
+        available_connections = []
         for c in self.graph.connections:
             if c.has_chosen:
                 continue
-            if (c.vertex_one.has_visited and not c.vertex_two.has_visited) or (c.vertex_two.has_visited and not c.vertex_one.has_visited):
-                avaiable_connections.append(c)
+            if (c.vertex_one.has_visited and not c.vertex_two.has_visited) \
+                    or (c.vertex_two.has_visited and not c.vertex_one.has_visited):
+                available_connections.append(c)
 
-        return avaiable_connections
+        return available_connections
 
 
 if __name__ == '__main__':
@@ -191,22 +202,22 @@ if __name__ == '__main__':
     # Initiates an instance of Prim's class
     p = Prim()
     # Add vertexes with any custom Label
-    p.graph.add_vertexes(['A', 'B', 'C', 'E', 'F', 'G', 'H'])
+    p.graph.add_vertexes(['A', 'B', 'C', 'D', 'E', 'F'])
     # Adds connections between the vertexes. Labels must match with already added vertexes
     p.graph.add_connections([
-        ('A', 8, 'B'),
-        ('A', 5, 'E'),
-        ('A', 1, 'F'),
-        ('A', 6, 'H'),
-        ('B', 6, 'F'),
-        ('B', 4, 'C'),
-        ('C', 2, 'F'),
-        ('C', 7, 'G'),
-        ('E', 3, 'H'),
-        ('F', 5, 'H'),
-        ('F', 9, 'G')
+        ('A', 1, 'B'),
+        ('A', 3, 'F'),
+        ('A', 3, 'C'),
+        ('B', 5, 'C'),
+        ('B', 1, 'D'),
+        ('C', 2, 'D'),
+        ('C', 1, 'E'),
+        ('D', 6, 'F'),
+        ('E', 5, 'F')
     ])
 
     # Solves and returns a SpanningTree object, with all the information stored inside it
     minimum_spanning_tree = p.solve()
+    print('Minimum Spanning Tree: \n')
+    print(minimum_spanning_tree)
 
